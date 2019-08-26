@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Socket.Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+
+    <style>
+    #container{
+      width: 95%;
+      margin-left: 2.5%;
+      border: 2px solid black;
+      padding: 5px;
+    }
+    .databox{
+      width: 20%;
+      padding: 20px 20px;
+      text-align: center;
+      display: inline-block;
+    }
+    #accel {
+      background-color: gold;
+    }
+    #gyros {
+      background-color: blue;
+    }
+    #magne{
+      background-color: grey;
+    }
+
+    #ctrbtn{
+      background-color: lightblue;
+      border-radius: 10px;
+      width: 50px;
+      padding: 5px 10px;
+      margin-left: 30px;
+      margin-top: 15px;
+    }
+    #object{
+      background-color: gold;
+      border-radius: 20px;
+      width: 100px;
+      height: 200px;
+      position: absolute;
+      left: 20%;
+      top: 50%;
+    }
+    #marker{
+      background-color: black;
+      border-radius: 20px;
+      width:  30px;
+      height: 30px;
+      position: relative;
+      left: calc(50% - 15px);
+      top: calc(85% - 15px); 
+    }
+    #balance {
+      background-color: black;
+      border-radius: 3px;
+      width:  120px;
+      height: 6px;
+      position: absolute;
+      left: 40%;
+      top: 70%;
+    }
+    #tipp {
+      background-color: blue;
+      border-radius: 3px;
+      width:  160px;
+      height: 6px;
+      position: absolute;
+      left: 65%;
+      top: 70%;
+    }
+    #pointer{
+      background-color: red;
+      border-radius: 20px;
+      width:  20px;
+      height: 20px;
+      position: absolute;
+      left: 0;
+      top: 0; 
+    }
+    #wheel{
+      border-radius: 50%;
+      background-color: grey;
+      width: 80px;
+      height: 80px;
+      display: inline-block;
+      margin-left: 100px;
+    }
+    .triangle-up {
+      width: 0;
+      height: 0;
+      border-left: 23px solid transparent;
+      border-right: 23px solid transparent;
+      border-bottom: 60px solid #0840FF;
+      margin-left: 18px;
+      margin-top: 6px;
+    }
+    </style>
+  </head>
+
+  <body>
+    <div id="container">
+      <div id="accel" class="databox">
+        Accelerometer
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+      </div>
+      <div id="gyros" class="databox">
+        Gyroscope
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+      </div>
+      <div id="magne" class="databox">
+        Magnetometer
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+      </div>
+      <div style="display: inline-block;">
+        <div style="margin-left: 50px;">Gyroscope steeringwheel</div>
+        <div id="wheel"><div class="triangle-up"></div></div>
+      </div>
+    </div>
+
+    <div id="container">
+      <div id="euler" class="databox">
+        Eurler Angles
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+      </div>
+      <div id="obje" class="databox">
+        Object
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+          <div class="xyz"></div>
+      </div>
+    </div>
+
+    <div id="object"><div id="marker"></div></div>
+    <div id="balance"></div>
+    <div id="tipp"></div>
+    <div id="ctrbtn">Center</div>
+
+    <div id="pointer"></div>
+    
+    <!--         Scripting         -->
+
+
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+          //console.log(`
+          var getCenter = false;
+          var wheelCenter = false;
+          document.getElementById('ctrbtn').onclick = function(){
+            getCenter = true;
+            wheelCenter = true;
+            wheelOffset = -wheel;
+          }
+          const socket = io();
+
+          socket.on('connect', ()=>{
+            console.log(" SOCKET CONNECTED ");
+            socket.emit('msg', 'hi socket its browser here');
+            
+          });
+          // Socket / Receive
+          var MAG = 'AF8133J Magnetometer';
+          var ACC = 'LSM6DS3 Accelerometer';
+          var GYR = 'LSM6DS3 Gyroscope';
+
+          var accel = document.getElementById('accel');
+          var gyros = document.getElementById('gyros');
+          var magnet = document.getElementById('magne');
+          var euler = document.getElementById('euler');
+          var objec = document.getElementById('obje');
+
+          var ctrng = [0,0,0]; // for centering 
+          var wheel = 0;
+          var wheelOffset = 0;
+          socket.on('sensor', (data)=>{
+            // Accel
+            accel.children[0].textContent = data[0][0];
+            accel.children[1].textContent = data[0][1];
+            accel.children[2].textContent = data[0][2];
+            // Gyro
+            gyros.children[0].textContent = data[1][0];
+            gyros.children[1].textContent = data[1][1];
+            gyros.children[2].textContent = data[1][2];
+            // Magnet
+            magnet.children[0].textContent = data[2][0];
+            magnet.children[1].textContent = data[2][1];
+            magnet.children[2].textContent = data[2][2];
+            // simple steering wheel on Gyro - yaw
+            wheel += data[1][2];
+            if(wheelCenter){
+
+              wheelCenter = false;
+            }
+            TweenMax.set('#wheel',{rotation: -(wheel+wheelOffset) });
+          });
+
+          socket.on('sensor1', (data)=>{
+            // Accel
+            if(data[ACC]){
+              accel.children[0].textContent = data[ACC].values[0];
+              accel.children[1].textContent = data[ACC].values[1];
+              accel.children[2].textContent = data[ACC].values[2];
+            }
+            // Gyro
+            if(data[GYR]){
+              gyros.children[0].textContent = data[GYR].values[0];
+              gyros.children[1].textContent = data[GYR].values[1];
+              gyros.children[2].textContent = data[GYR].values[2];
+            }
+            // Magnet
+            if(data[MAG]){
+              magnet.children[0].textContent = data[MAG].values[0];
+              magnet.children[1].textContent = data[MAG].values[1];
+              magnet.children[2].textContent = data[MAG].values[2];
+            }
+          });
+
+          socket.on('euler',(data)=>{
+            euler.children[0].textContent = data['heading'];
+            euler.children[1].textContent = data['pitch'];
+            euler.children[2].textContent = data['roll'];
+            let heading = data['heading']*180/Math.PI -ctrng[0]; // -pi to pi
+            let pitch = data['pitch']*180/Math.PI -ctrng[1];
+            let roll = data['roll']*180/Math.PI -ctrng[2];
+            if(getCenter){
+              ctrng[0] += heading;
+              ctrng[1] += pitch;
+              ctrng[2] += roll;
+              getCenter = false;
+            }
+            TweenMax.set('#object',{rotation: -(heading) });
+            TweenMax.set('#balance',{rotation: (pitch) });
+            TweenMax.set('#tipp',{rotation: -(roll), transformOrigin:"left 50%" });
+            objec.children[0].textContent = heading;
+            objec.children[1].textContent = pitch;
+            objec.children[2].textContent = roll;
+            var Xrange = 12;
+            var Yrange = 18;
+            var x = map(heading,Xrange,-Xrange,0,100 );
+            var y = map(roll,Yrange,-Yrange,0,100);
+            x = limit(x,0,100);            y = limit(y,0,100);
+            TweenMax.set('#pointer',{left: x.toString()+'%', top: y.toString()+'%' });
+          });
+
+          socket.on('disconnect',()=>{
+            console.log(" !    !    ! DIS - CONNECTED ");
+          });
+
+          function map(x, min, max, omin, omax){
+            return omin + (x-min) * (omax-omin) / (max-min);
+          }
+          function limit(x,min,max){
+            if(x<min)
+              x = min;
+            else if(x>max)
+              x = max;
+            return x;
+          }
+
+      </script>
+  </body>
+
+
+</html>
