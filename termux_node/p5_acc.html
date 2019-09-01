@@ -1,0 +1,199 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- PLEASE NO CHANGES BELOW THIS LINE (UNTIL I SAY SO) -->
+  <script language="javascript" type="text/javascript" src="libraries/p5.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
+  
+<!--script language="javascript" type="text/javascript" src="p5_accel_field.js"></script-->
+<script language="javascript" type="text/javascript">
+ 
+var parts =[];
+var N = 1;
+var Field = 100;
+
+function setup() {
+  createCanvas(600,360);
+  //frameRate(10);
+  for( var x=0; x<N; x+=1)
+  {
+    parts[x] = new Ball();
+    parts[x].pos = [ width/2, height/2 ];
+    var Rs = 1;
+    parts[x].vel = [random(-Rs,Rs), random(-Rs,Rs)];
+    parts[x].accel = [0, 0];
+    parts[x].f_friction = 5;
+    parts[x].radius = 20;
+  }
+}
+
+
+// * socket setup
+const socket = io('http://192.168.178.21:3000');    
+  // 
+socket.on('connect', ()=>{
+  //
+  console.log(" SOCKET CONNECTED ");
+  socket.emit('msg', 'Hi its picture frame, im ready');
+  
+});
+
+  // Socket / Receive
+socket.on('msg', (data)=>{
+  console.log(`socketmsg ${data}`);
+});
+
+var dAcc = [0,0];
+socket.on('sensor',(data)=>{
+  // console.log(data);
+  let acc = data[0];
+  let gyr = data[1];
+  let mag = data[2];
+  const fact = 2;
+  if(acc){
+    let dAdT = [ acc[0]-dAcc[0], acc[1]-dAcc[1]];
+    // console.log( dAdT[0], dAdT[1] );
+    parts[0].vel[0] += dAdT[0] * fact;
+    parts[0].vel[1] += dAdT[1] * fact;
+    dAcc[0] = acc[0];
+    dAcc[1] = acc[1];    
+  }
+  // Eo sensor
+});
+
+socket.on('disconnect',()=>{
+  console.log(" !    !    ! socket - DIS - CONNECTED ");
+});
+
+function draw(event){
+  if(true)
+  {
+    background(0);
+    for( var x=0; x<N; x+=1)
+    {
+      // update 
+      parts[x].friction(2);
+      parts[x].update();
+      parts[x].wrap(width,height);
+      parts[x].display();
+    }
+  }
+}
+
+function mouseClicked() {
+
+}
+var pi = Math.PI;
+
+ class Ball {
+  
+  constructor() {
+    //this.field=100;
+    //this.fieldSqrt = Math.sqrt(this.field*this.field);
+    this.radius = 10;
+    this.pos = [0,0];
+    this.vel = [0,0];
+    this.accel=[0,0];
+    //this.f_friction=5;
+  }
+  
+  move( x, y) {
+    this.pos[0] = x;
+    this.pos[1] = y;
+  }
+  
+  wrap( w,h){
+    while(this.pos[0]>w)
+      this.pos[0] -= w;
+    while(this.pos[0]<0)
+      this.pos[0] += w;
+    while(this.pos[1] > h)
+      this.pos[1] -= h;
+    while(this.pos[1]<0)
+      this.pos[1] += h;
+  }
+  
+  // ! repeling velocities NEEDS friction
+  //   fields are essentially creating power      
+  repel( other, field, factor ){
+    var vec = [ this.pos[0]-other[0] , this.pos[1]-other[1] ];
+    var fieldSqrt = Math.sqrt(field*field+field*field);
+    var mag = Math.sqrt(vec[0]*vec[0]+vec[1]*vec[1]);
+    if( mag != 0 && mag < fieldSqrt ){
+      var dir = [ (vec[0]/mag) , (vec[1]/mag) ];
+      mag = fieldSqrt-mag;
+      mag *= mag;
+      //console.log( mag, this.pos[0], other[0], dir[0] );
+      var g = Math.pow(10,factor);
+      
+      // ! adding to pos makes weird queuey/avoidy movement
+      // ! adding to vel looks nice but increases speed...
+      this.vel[0] += (dir[0] * mag ) /g;
+      this.vel[1] += (dir[1] * mag ) /g;
+    }
+  }
+    
+  repel_wall( field, factor, w, h, border )
+  { 
+    var force=[0,0];
+    factor = Math.pow(10,factor);
+    var right = (w+border) - this.pos[0];  // distance to right
+    if(right<field){
+      force[0] = (field-right);
+      force[0] = -force[0]*force[0]/factor;
+    }
+    var left = this.pos[0] +border;
+    if(left<field){
+      force[0] = (field-left);
+      force[0] = force[0]*force[0]/factor;
+    }
+    var top = this.pos[1]+border;
+    if(top<field){
+      force[1] = (field-top);
+      force[1] = force[1]*force[1]/factor;
+    }
+    var bott = (h+border) -this.pos[1];
+    if(bott<field){
+      force[1] = field-bott;
+      force[1] = -force[1]*force[1]/factor;
+    }
+    this.vel[0] += force[0];
+    this.vel[1] += force[1];
+    // Eo func
+  }
+  
+  friction(x){
+    this.f_friction = x;
+    this.vel[0] -= ( this.vel[0] / Math.pow(10,this.f_friction) );
+    this.vel[1] -= ( this.vel[1] / Math.pow(10,this.f_friction) );
+  }
+  
+  update(){
+    this.vel[0] += this.accel[0];
+    this.vel[1] += this.accel[1];
+    this.pos[0] += this.vel[0];
+    this.pos[1] += this.vel[1];
+  }
+
+  display() {
+    noStroke();    fill(40,5,160);
+    ellipse(this.pos[0], this.pos[1], this.radius, this.radius);
+  }
+}
+	
+
+
+</script>
+  
+
+  <!-- This line removes any default padding and style.
+       You might only need one of these values set. -->
+  <style> body { padding: 0; margin: 0; } </style>
+</head>
+
+<body>
+</body>
+</html>

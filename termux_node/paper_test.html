@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Paper</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+  </head>
+
+  <body>
+    <!--  Jumbotron-->
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">This is Paper</h1>
+        <p class="lead">Drawing random points on Socket message  </p>
+      </div> 
+    </div>
+    
+      <!--  imports scripts   -->
+      <script type="text/javascript" src="libraries/paper-core.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
+      
+      <script type="text/javascript">
+
+      // Only executed our code once the DOM is ready.
+      paper.install(window);
+
+      window.onload = function() 
+      {
+
+          // * Setup Paper
+          paper.setup('paperCanvas');
+          var ui = new Tool();
+          
+          var path;
+
+          ui.onMouseDown = function(event){
+            path = new Path();
+            path.strokeColor = 'black';
+            path.add(event.point);
+            // view.draw();
+          }
+
+          ui.onMouseDrag = function(event) {
+            path.add(event.point);
+            // view.draw();
+          }
+
+
+        // * socket setup
+        const socket = io('http://192.168.178.21:3000');    
+          // 
+        socket.on('connect', ()=>{
+          //
+          console.log(" SOCKET CONNECTED ");
+          socket.emit('msg', 'Hi its picture frame, im ready');
+          
+        });
+
+          // Socket / Receive
+        socket.on('msg', (data)=>{
+          console.log(`socketmsg ${data}`);
+        });
+
+        socket.on('sensor',(data)=>{
+          console.log(data);
+          // Accel
+          let acc = data[0];
+        });
+
+        socket.on('disconnect',()=>{
+          console.log(" !    !    ! socket - DIS - CONNECTED ");
+        });
+
+      // Eo window.onload
+    }
+
+    </script>
+
+    <div>
+        <canvas id="paperCanvas" resize style=" width:1080px; height:600px; border:1px solid grey;"></canvas>
+    </div>
+    
+  </body>
+
+
+</html>

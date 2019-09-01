@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Paper</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+  </head>
+
+  <body>
+    <!--  Jumbotron-->
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">This is Paper</h1>
+        <p class="lead">Drawing random points on Socket message  </p>
+      </div> 
+    </div>
+    
+      <!--  imports scripts   -->
+      <script type="text/javascript" src="libraries/paper-core.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
+      
+      <script type="text/javascript">
+
+      // Only executed our code once the DOM is ready.
+      paper.install(window);
+
+      window.onload = function() 
+      {
+
+          // * Setup Paper
+          paper.setup('paperCanvas');
+          var ui = new Tool();
+          
+          var path;
+
+          ui.onMouseDown = function(event){
+            path = new Path();
+            path.strokeColor = 'black';
+            path.add(event.point);
+            // view.draw();
+          }
+
+          ui.onMouseDrag = function(event) {
+            path.add(event.point);
+            // view.draw();
+          }
+
+
+        // * socket setup
+        const socket = io('http://192.168.178.21:3000');    
+          // 
+        socket.on('connect', ()=>{
+          //
+          console.log(" SOCKET CONNECTED ");
+          socket.emit('msg', 'Hi its picture frame, im ready');
+          
+        });
+
+          // Socket / Receive
+        socket.on('msg', (data)=>{
+          console.log(`socketmsg ${data}`);
+        });
+
+        var accDot = new Path.Circle({
+            center: [30,30],
+            radius: 30,
+            fillColor: 'blue'
+        });
+
+        var ball = new Ball();
+        ball.pos = [ view.center.x, view.center.y ];
+        ball.f_friction = 5;
+        ball.radius = 30;
+
+        var lastScale = 1;
+        socket.on('sensor',(data)=>{
+          // *
+          // console.log(data);
+          let acc = data[0];
+          let gyr = data[1];
+          let mag = data[2];
+          
+          if(acc){
+            // x,y to [x,y] , z to radius
+            let S = 10;
+            let p = new Point(acc[0]*S+view.center.x,
+                              acc[1]*S+view.center.y );
+            accDot.position = p;
+            let R = acc[2]/5;
+            accDot.scale(1/lastScale);
+            accDot.scale(R);
+            lastScale = R;            
+          }
+          // Eo sensor
+        });
+
+        socket.on('disconnect',()=>{
+          console.log(" !    !    ! socket - DIS - CONNECTED ");
+        });
+
+      // Eo window.onload
+    }
+
+    var pi = Math.PI;
+
+ class Ball {
+  
+  constructor() {
+    //this.field=100;
+    //this.fieldSqrt = Math.sqrt(this.field*this.field);
+    this.radius = 10;
+    this.pos = [0,0];
+    this.vel = [0,0];
+    this.accel=[0,0];
+    //this.f_friction=5;
+  }
+  
+  move( x, y) {
+    this.pos[0] = x;
+    this.pos[1] = y;
+  }
+  
+  wrap( w,h){
+    while(this.pos[0]>w)
+      this.pos[0] -= w;
+    while(this.pos[0]<0)
+      this.pos[0] += w;
+    while(this.pos[1] > h)
+      this.pos[1] -= h;
+    while(this.pos[1]<0)
+      this.pos[1] += h;
+  }
+  
+  
+  friction(x){
+    this.f_friction = x;
+    this.vel[0] -= ( this.vel[0] / Math.pow(10,this.f_friction) );
+    this.vel[1] -= ( this.vel[1] / Math.pow(10,this.f_friction) );
+  }
+  
+  update(){
+    this.vel[0] += this.accel[0];
+    this.vel[1] += this.accel[1];
+    this.pos[0] += this.vel[0];
+    this.pos[1] += this.vel[1];
+  }
+
+  display() {
+    
+  }
+}
+
+    </script>
+
+    <div>
+        <canvas id="paperCanvas" resize style=" width:1080px; height:600px; border:1px solid grey;"></canvas>
+    </div>
+    
+  </body>
+
+
+</html>
