@@ -95,7 +95,7 @@
         }
         stroke(100,30,30);  noFill();
         ellipse(width/2, height/2, 10*sliding.mag(), 10*sliding.mag() );
-        sliding.mult(0.96); // 95 is too fast
+        sliding.mult(0.97); // 95 is too fast
         let t = Date.now()
         if(t-cons>300){
           console.log(sliding.mag());

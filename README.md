@@ -66,15 +66,14 @@ Interface to send Android phone sensor data over Socket.io to a NodeJS server &a
    Thus the best method is `termux_socket2.js` which can start and stop the datastream, but creating a new child process, then killing it and cleaning the sensor with `termux-sensor -c` for clean-up.
 
 ### III. termux node
-	
-	My first test was XI. Node-server, however I simplified a bit so now the node script running on the android reads the data and starts a socket.io server, and sends the data to any client that connects to the socket.
-	This is way simpler, then any browser / GUI can connect to the socket and receive the data.
 
-	For this see folder `/termux_node` 
+ My first test was XI. Node-server, however I simplified a bit so now the node script running on the android reads the data and starts a socket.io server, and sends the data to any client that connects to the socket.
+ This is way simpler, then any browser / GUI can connect to the socket and receive the data.
 
-	The `termux_node.js` script should be copied and run on the android device through termux. This requires `$ npm install socket.io node-cmd ahrs --save` 
+ For this see folder `/termux_node` 
 
-	then open up any of the .html files to open a GUI in browser that will connect to the android-node-socket.io-server. Just find out the IP address of the android phone ( `$ ifconfig `) and replace in the connect code.
+ The `termux_node.js` script should be copied and run on the android device through termux. This requires `$ npm install socket.io node-cmd ahrs --save` 
+ then open up any of the .html files to open a GUI in browser that will connect to the android-node-socket.io-server. Just find out the IP address of the android phone ( `$ ifconfig `) and replace in the connect code.
 
 ### XI. Node-server with [Socket.io](https://www.npmjs.com/package/socket.io)
 
