@@ -63,21 +63,32 @@ Interface to send Android phone sensor data over Socket.io to a NodeJS server &a
     * The first test of this is `stdstream.js`. 
     * Then `termux_socket.js` to create a new datastream that read -n values and then opens new, but there is quite a delay with termux before any command is executed
    
-   Thus the best method is `termux_socket2.js` which can start and stop the datastream, but creating a new child process, then killing it and cleaning the sensor with `ternux-sensor -c` for clean-up.
+   Thus the best method is `termux_socket2.js` which can start and stop the datastream, but creating a new child process, then killing it and cleaning the sensor with `termux-sensor -c` for clean-up.
 
-### III. Node-server with [Socket.io](https://www.npmjs.com/package/socket.io)
+### III. termux node
+	
+	My first test was XI. Node-server, however I simplified a bit so now the node script running on the android reads the data and starts a socket.io server, and sends the data to any client that connects to the socket.
+	This is way simpler, then any browser / GUI can connect to the socket and receive the data.
+
+	For this see folder `/termux_node` 
+
+	The `termux_node.js` script should be copied and run on the android device through termux. This requires `$ npm install socket.io node-cmd ahrs --save` 
+
+	then open up any of the .html files to open a GUI in browser that will connect to the android-node-socket.io-server. Just find out the IP address of the android phone ( `$ ifconfig `) and replace in the connect code.
+
+### XI. Node-server with [Socket.io](https://www.npmjs.com/package/socket.io)
 
    I like using Socket.io a lot for connecting different nodes to each other and sending data around.
-   See `/termux_node` 
-    * Socket.io
-    * Uses Express for simple web-server
-    * [npm : AHRS](https://www.npmjs.com/package/ahrs) - performs sensor fusion of Gyro+accel+magnetometer
+   See `/static_server` 
+   * Socket.io
+   * Uses Express for simple web-server
+   * [npm : AHRS](https://www.npmjs.com/package/ahrs) - performs sensor fusion of Gyro+accel+magnetometer
 
    So this is just a basic server that the android node connects to (so you could have more than one android device). It receives the data and just broadcasts it on socket. Then the AHRS pckage additionally performs sensor fusion. This is working well but not as well as I expected. 
-    * I added the parameter that measures time between frames and this improved performance a lot
-    * still not alwasy as good as expected, but right now this could still be due to the android phone / sensors or even just because the magnetometer is getting bad readings as I am indoors and there is metal and electronics around.
+   * I added the parameter that measures time between frames and this improved performance a lot
+   * still not alwasy as good as expected, but right now this could still be due to the android phone / sensors or even just because the magnetometer is getting bad readings as I am indoors and there is metal and electronics around.
 
-### IV. Web GUI
+### with Web GUI
    
    2. In the first box are displayed directly the Accelerometer, Gyroscope and Magnetometer values.
    2. A *Gyroscope wheel* example that only takes the gyro's yaw value to turn a steering wheel
