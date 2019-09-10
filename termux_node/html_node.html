@@ -165,14 +165,7 @@
             wheelCenter = true;
             wheelOffset = -wheel;
           }
-          const socket = io('http://192.168.178.21:3000');
 
-          socket.on('connect', ()=>{
-            console.log(" SOCKET CONNECTED ");
-            socket.emit('msg', 'hi socket its browser here');
-            
-          });
-          // Socket / Receive
           var MAG = 'AF8133J Magnetometer';
           var ACC = 'LSM6DS3 Accelerometer';
           var GYR = 'LSM6DS3 Gyroscope';
@@ -186,6 +179,16 @@
           var ctrng = [0,0,0]; // for centering 
           var wheel = 0;
           var wheelOffset = 0;
+          
+          //    ***  * * * * * *   socket
+
+          const socket = io('http://192.168.178.21:3000');
+
+          socket.on('connect', ()=>{
+            console.log(" SOCKET CONNECTED ");
+            socket.emit('msg', 'hi socket its browser here');
+            
+          });
 
           socket.on('data',(data)=>{
             console.log("socket-data",data);
