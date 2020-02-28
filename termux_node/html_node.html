@@ -154,7 +154,7 @@
     <!--         Scripting         -->
 
 
-      <script src="/socket.io/socket.io.js"></script>
+      <!-- <script src="/socket.io/socket.io.js"></script> -->
       <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
       <script>
           //console.log(`
@@ -182,7 +182,8 @@
           
           //    ***  * * * * * *   socket
 
-          const socket = io('http://192.168.178.21:3000');
+          // const socket = io('http://192.168.178.21:3000');
+          const socket = io('http://10.112.25.149:3000');
 
           socket.on('connect', ()=>{
             console.log(" SOCKET CONNECTED ");
@@ -202,6 +203,8 @@
 
           socket.on('sensor', (data)=>{
             // Accel
+            // console.log(' sensor data : ', data );
+            
             accel.children[0].textContent = data[0][0];
             accel.children[1].textContent = data[0][1];
             accel.children[2].textContent = data[0][2];

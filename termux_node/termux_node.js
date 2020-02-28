@@ -12,9 +12,14 @@ const {spawn} = require('child_process');
 var proc;
 var dataStreamOn = false;
 
-var MAG = 'AF8133J Magnetometer';
-var ACC = 'LSM6DS3 Accelerometer';
-var GYR = 'LSM6DS3 Gyroscope';
+// My sony phone
+// var MAG = 'AF8133J Magnetometer';
+// var ACC = 'LSM6DS3 Accelerometer';
+// var GYR = 'LSM6DS3 Gyroscope';
+
+var MAG = 'AK09918 Magnetometer';
+var ACC = 'LSM6DSO Accelerometer';
+var GYR = 'LSM6DSO Gyroscope';
 
 
 //       *     *    *    *    Sensor fusion     *    *    *    *    *    *    *    *
@@ -42,6 +47,7 @@ function start_sensor_stream(){
 			if(clients.length>0){
 				data = data.toString();
 				// console.log("data",data);
+
 				let json;
 				try {
 					if(data.length>3){
@@ -49,16 +55,18 @@ function start_sensor_stream(){
 					}
 				}
 				catch(e){
-					// console.log("\t data-err:\t" );	
+					// console.log("\t reading data to json error " );	
 				}
 				if(json){
-					// console.log("json",json);
+					console.log("json",json);
+					// 
 					// io.emit('data',json);	// is only printed in brwoser
 					let g,a,m;
 					if(json[GYR])		g = json[GYR].values;
 					if(json[ACC])		a = json[ACC].values;
 					if(json[MAG])		m = json[MAG].values;
-					// console.log(g,a,m);
+					// console.log('sensors : ', g,a,m);
+
 					io.emit('sensor',[a,g,m]);	// IMU data
 					if(g && a && m){
 						let t = Date.now();
