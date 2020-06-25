@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Socket.Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/2.1.3/TweenMax.min.js"></script>
+
+    <style>
+    .container{
+      width: 95%;
+      margin-left: 2.5%;
+      border: 2px solid black;
+      padding: 5px;
+    }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="button">Get voice</div>
+    </div>
+    <div class="container">
+      <div id="speech">...</div>
+    </div>
+    
+    <!--         Scripting         -->
+
+
+      <!-- <script src="/socket.io/socket.io.js"></script> -->
+      <script src="./node_modules/socket.io-client/dist/socket.io.js"></script>
+      <script>
+
+          var butt = document.getElementById('button');
+
+          //    ***  * * * * * *   socket
+
+          // const socket = io('http://192.168.178.21:3000');
+          const socket = io('http://10.112.25.149:3000');
+
+          socket.on('connect', ()=>{
+            console.log(" SOCKET CONNECTED ");
+            socket.emit('msg', 'hi socket its browser here');
+          });
+
+          socket.on('data',(data)=>{
+            console.log("socket-data",data);
+          });
+
+          socket.on('msg',(data)=>{
+            console.log("socket-msg",data);
+          });
+          
+          socket.on('disconnect',()=>{
+            console.log(" !    !    ! DIS - CONNECTED ");
+          });
+
+          butt.onclick = function(){
+            butt.style.backgroundColor = 'green';
+            console.log(' click , emitting ');
+            socket.emit('speech','get');
+          }
+
+          socket.on('speech',(data)=>{
+            console.log(' $ VOICE : \t', data );
+            document.getElementById('speech').appendChild(document.createTextNode(data));
+            butt.style.backgroundColor = 'white';
+            // Eo 
+          });
+
+          function map(x, min, max, omin, omax){
+            return omin + (x-min) * (omax-omin) / (max-min);
+          }
+          function limit(x,min,max){
+            if(x<min)
+              x = min;
+            else if(x>max)
+              x = max;
+            return x;
+          }
+
+      </script>
+  </body>
+
+
+</html>
